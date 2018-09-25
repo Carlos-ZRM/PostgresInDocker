@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-
-su - postgres -c 'PGPASSWORD=spacepw; createdb -E UTF8 spaceschema ; createlang plpgsql spaceschema ; createlang pltclu spaceschema ; yes $PGPASSWORD | createuser -P -sDR spaceuser'
-	sed -i "s%#listen_addr.*%listen_addresses = '*'%g" /var/lib/pgsql/data/postgresql.conf
-sed -i "s%#max_conne.*%max_connections = 600%g" /var/lib/pgsql/data/postgresql.conf
-	su - postgres -c "/usr/bin/pg_ctl restart"
+su - postgres -c "/usr/bin/pg_ctl restart -D /var/lib/pgsql/data/  -w -t 100"
+su - postgres -c 'PGPASSWORD=spacepw;'
+su - postgres -c 'createdb spaceschema ;'
+su - postgres -c 'createlang plpgsql spaceschema ;'
+su - postgres -c 'createlang pltclu spaceschema ;'
+su - postgres -c 'yes $PGPASSWORD | createuser -P -sDR spaceuser'
 
