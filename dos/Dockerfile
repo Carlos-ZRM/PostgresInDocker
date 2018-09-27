@@ -10,6 +10,6 @@ EXPOSE 5432
 VOLUME ["/var/lib/pgsql/data","/var/lib/pgsql/data/pg_log"]
 COPY spacewalk-postgres-entrypoint.sh .
 COPY entry.sh .
-ENTRYPOINT ["/entry.sh"]
-#ENTRYPOINT ["/spacewalk-postgres-entrypoint.sh"]
+#ENTRYPOINT ["/entry.sh"]
+ENTRYPOINT ["/spacewalk-postgres-entrypoint.sh"]
 
