@@ -81,9 +81,6 @@ while true; do
 	if [ $STOP_PROC != 0 ]; then 
 		if [ "$(ls -A /var/lib/pgsql/data)" ]; then
         		su - postgres -c "/usr/bin/pg_ctl restart -D /var/lib/pgsql/data/  -w -t 300"
-		else
-			__start_sql
-			__create_db
 		fi
 	
 	fi
