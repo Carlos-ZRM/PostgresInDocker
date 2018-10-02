@@ -22,15 +22,7 @@ __start_sql()
 		usermod -G wheel postgres
 		chown -R postgres /var/lib/pgsql/data/*
 		su postgres - -c "/usr/bin/pg_ctl start -D /var/lib/pgsql/data/ -w"
-		log "La base de datos se inicio sin configuracioens"
- 		sed -i "s%#listen_addr.*%listen_addresses = '*'%g" /var/lib/pgsql/data/postgresql.conf
-        	sed -i "s%#max_conne.*%max_connections = 600%g" /var/lib/pgsql/data/postgresql.conf
-		echo "host all  all    0.0.0.0/0  md5" >> /var/lib/pgsql/data/pg_hba.conf
-		echo "local "${DB_USER}" spaceuser md5" >> /var/lib/pgsql/data/pg_hba.conf
-		echo "host  "${DB_USER}" spaceuser 127.0.0.1/8 md5">> /var/lib/pgsql/data/pg_hba.conf
-		echo "host  "${DB_USER}" spaceuser ::1/128 md5">> /var/lib/pgsql/data/pg_hba.conf
-		echo "local "${DB_USER}" postgres  ident">> /var/lib/pgsql/data/pg_hba.conf
-		#cat /var/lib/pgsql/data/pg_hba.conf 
+		log "La base de datos se inicio"
 	fi	
 		
 }
@@ -46,20 +38,27 @@ __create_db()
     			DB_PASS=$(pwgen -c -n -1 12)
     			log "Password para \"${DB_USER}\" es: \"${DB_PASS}\""
   		fi
-		su postgres - -c "PGPASSWORD="$DB_PASS";"
-		su postgres - -c "echo PGPASSWORD"
-		su postgres - -c "yes PGPASSWORD | createuser -P -sDR "$DB_USER";"
-		log  "Usuario "$DB_USER"creado"
 
 	fi
 	# si DB_NAME NONEMPTYSTRING
 	if [ -n "${DB_NAME}" ]; then
+		su postgres - -c "PGPASSWORD="$DB_PASS";"
+                su postgres - -c "yes PGPASSWORD | createuser -P -sDR "$DB_USER";"
+                log  "Usuario "$DB_USER"creado"
 		su postgres - -c "createdb "${DB_NAME}" ;"
 		log "Base de datos "$DB_NAME" creada"
-  		if [ -n "${DB_USER}" ]; then
-			su - postgres -c "/usr/bin/pg_ctl restart -D /var/lib/pgsql/data/  -w -t 300"
-			log "Se reinicio Postgres SQL ... Contenedor listo!"
-  		fi
+		sed -i "s%#listen_addr.*%listen_addresses = '*'%g" /var/lib/pgsql/data/postgresql.conf
+                sed -i "s%#max_conne.*%max_connections = 600%g" /var/lib/pgsql/data/postgresql.conf
+                echo "host all  all    0.0.0.0/0  md5" >> /var/lib/pgsql/data/pg_hba.conf
+                echo "local "${DB_USER}" spaceuser md5" >> /var/lib/pgsql/data/pg_hba.conf
+                echo "host  "${DB_USER}" spaceuser 127.0.0.1/8 md5">> /var/lib/pgsql/data/pg_hba.conf
+                echo "host  "${DB_USER}" spaceuser ::1/128 md5">> /var/lib/pgsql/data/pg_hba.conf
+                echo "local "${DB_USER}" postgres  ident">> /var/lib/pgsql/data/pg_hba.conf
+		log "Configuracion creada" 
+		touch /.cookiePosgres
+		su - postgres -c "/usr/bin/pg_ctl restart -D /var/lib/pgsql/data/  -w -t 300"
+                log "Se reinicio Postgres SQL ... Contenedor listo!"
+
 	fi
 }
 
@@ -71,18 +70,25 @@ DB_PASS=${DB_PASS:-}
 https_proxy=${https_proxy:-}
 http_proxy=${http_proxy:-}
 PG_CONFDIR="/var/lib/pgsql/data"
-
-
-__start_sql
-__create_db
+#
+if [ 0 -eq $(pgrep -x postgres &>/dev/null && echo 1 || echo 0) ];then
+	__start_sql
+	if [ 0 -eq $(ls -A  /.cookiePosgres &>/dev/null && echo 1 || echo 0) ];then 
+		__create_db
+	fi
+fi
 
 echo " ... "
 while true; do
 	if [ $STOP_PROC != 0 ]; then 
-		if [ "$(ls -A /var/lib/pgsql/data)" ]; then
-        		su - postgres -c "/usr/bin/pg_ctl restart -D /var/lib/pgsql/data/  -w -t 300"
+        	if [ 0 -eq $(pgrep -x postgres &>/dev/null && echo 1 || echo 0) ]; then
+			su - postgres -c "/usr/bin/pg_ctl restart -D /var/lib/pgsql/data/  -w -t 300"
+			log "La base de datos se reinicio"
+			sleep 5
+		else
+			log "Trap encontrado sericio Postgres arriba"
 		fi
-	
+		
 	fi
 	sleep 15
 done
