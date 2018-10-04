@@ -44,16 +44,16 @@ __create_db()
 	if [ -n "${DB_NAME}" ]; then
 		su postgres - -c "PGPASSWORD="$DB_PASS";"
                 su postgres - -c "yes PGPASSWORD | createuser -P -sDR "$DB_USER";"
-                log  "Usuario "$DB_USER"creado"
+                log  "Usuario "$DB_USER" creado"
 		su postgres - -c "createdb "${DB_NAME}" ;"
 		log "Base de datos "$DB_NAME" creada"
 		sed -i "s%#listen_addr.*%listen_addresses = '*'%g" /var/lib/pgsql/data/postgresql.conf
                 sed -i "s%#max_conne.*%max_connections = 600%g" /var/lib/pgsql/data/postgresql.conf
                 echo "host all  all    0.0.0.0/0  md5" >> /var/lib/pgsql/data/pg_hba.conf
-                echo "local "${DB_USER}" spaceuser md5" >> /var/lib/pgsql/data/pg_hba.conf
-                echo "host  "${DB_USER}" spaceuser 127.0.0.1/8 md5">> /var/lib/pgsql/data/pg_hba.conf
-                echo "host  "${DB_USER}" spaceuser ::1/128 md5">> /var/lib/pgsql/data/pg_hba.conf
-                echo "local "${DB_USER}" postgres  ident">> /var/lib/pgsql/data/pg_hba.conf
+                echo "local "${DB_NAME}" ${DB_USER} md5" >> /var/lib/pgsql/data/pg_hba.conf
+                echo "host  "${DB_NAME}" ${DB_USER} 127.0.0.1/8 md5">> /var/lib/pgsql/data/pg_hba.conf
+                echo "host  "${DB_NAME}" ${DB_NAME} ::1/128 md5">> /var/lib/pgsql/data/pg_hba.conf
+                echo "local "${DB_NAME}" postgres  ident">> /var/lib/pgsql/data/pg_hba.conf
 		log "Configuracion creada" 
 		touch /.cookiePosgres
 		su - postgres -c "/usr/bin/pg_ctl restart -D /var/lib/pgsql/data/  -w -t 300"
