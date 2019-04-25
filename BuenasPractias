@@ -1,0 +1,27 @@
+# Dockerfile
+Docker construye imágenes automáticamente al leer las instrucciones de un Dockerfile, un archivo de texto que contiene todos los comandos, en orden, necesarios para construir una imagen determinada.
+Una imagen de Docker consta de capas de solo lectura, cada una de las cuales representa una instrucción Dockerfile. Las capas se apilan y cada una es un delta de los cambios de la capa anterior. Por lo que cada nueva capa aumenta el tamaño en bytes de la imagen. 
+  
+  Cuando ejecuta una imagen y genera un contenedor, agrega una nueva capa de escritura (la "capa de contenedor") en la parte superior de las capas subyacentes. Todos los cambios realizados en el contenedor en ejecución, como escribir nuevos archivos, modificar archivos existentes y eliminar archivos, se escriben en esta capa de contenedor de escritura delgada.
+## Buenas practicas para un dockerfile 
+### Compilación por etapas
+Debido a que una imagen se genera durante la etapa final del proceso de construcción, puede minimizar las capas de imagen aprovechando la memoria caché de construcción. Por ejemplo, si su compilación contiene varias capas, puede ordenarlas desde las que se cambian con menos frecuencia (para garantizar que la memoria caché de la compilación sea reutilizable) a las que se cambian con más frecuencia:
+ - Instale las herramientas que necesita para construir su aplicación
+- Instalar o actualizar las dependencias de la biblioteca.
+- Generar la aplicación
+### No instales paquetes innecesarios 
+### Desacopla aplicaciones
+Un contenedor es un micro servicio por lo que es recomendable que exista una aplicación por contenedor.   Si los contenedores dependen unos de otros, puede usar las redes de contenedores de Docker para asegurarse de que estos contenedores puedan comunicarse. También pueden utilizarse **dockercompose** para desplegar contenedores al mismo tiempo. 
+
+### Minimiza el número de capas
+En versiones anteriores de Docker, era importante que minimizase la cantidad de capas en sus imágenes para asegurarse de que tuvieran un buen rendimiento. Las siguientes características fueron agregadas para reducir esta limitación:
+Sólo las instrucciones *RUN, COPY, ADD* crean capas. Otras instrucciones crean imágenes intermedias temporales y no aumentan el tamaño de la compilación.
+Cuando sea posible, use compilaciones de varias etapas y solo copie los artefactos que necesita en la imagen final. Esto le permite incluir herramientas e información de depuración en sus etapas de construcción intermedias sin aumentar el tamaño de la imagen final.
+### Ordena los argumentos multi linea 
+																																																																																																																																										
+ 
+
+ 
+
+
+
